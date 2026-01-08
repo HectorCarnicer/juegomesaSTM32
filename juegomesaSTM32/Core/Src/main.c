@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "game_tipos.h"
+#include "game_funcionamiento.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,6 +93,31 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+   HAL_ADC_Start(&hadc1); //leer sensores
+   if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
+    uint32_t rawValue = HAL_ADC_GetValue(&hadc1); Game_Update(&hGame, rawValue); 
+   }
+  //leds del progreso
+   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, (hGame.currentDigitIndex > 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, (hGame.currentDigitIndex > 2) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+  //feedback de estado final
+   if(hGame.currentState == STATE_WIN) {
+        // victoria es color verde parpadeo
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0); 
+        HAL_Delay(200); 
+    } 
+    else if (hGame.currentState == STATE_LOSE) {
+        // alarma es rojo parpadeo
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+        HAL_Delay(50);
+    }
+    HAL_Delay(10);
+
+
+
+   
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -145,7 +171,24 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    // verifica pin es boton
+    // eligo pin13 o el q sea q este configurado
+    if (GPIO_Pin == GPIO_PIN_13) 
+    {
+        // antirrebote simple
+        static uint32_t last_interrupt_time = 0;
+        uint32_t interrupt_time = HAL_GetTick();
 
+        if (interrupt_time - last_interrupt_time > 200) 
+        {
+            // llamamos al juego y guardamos la variable de tiempo para meterle un max
+            Game_HandleButton(&hGame);
+            last_interrupt_time = interrupt_time;
+        }
+    }
+}
 /* USER CODE END 4 */
 
 /**
