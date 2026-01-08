@@ -1,57 +1,74 @@
-
-/* Includes ------*/
-#include "main.h"
-// INCLUDES
-#include "game_tipos.h"
 #include "game_funcionamiento.h"
+#include <stdlib.h> // para el randomizer de despues
 
-/* variables privadas ------------------------*/
-ADC_HandleTypeDef hadc1; 
+#define TOLERANCE 1
+#define MAX_VAL   9      
 
-Game_Handle_t hGame;             // la instancia 
-
-/* Private user code ---------------------------------------------------------*/
-
-int main(void)
-{
-  HAL_Init();
-  SystemClock_Config();
-  
-  MX_GPIO_Init(); //falta por hacer las configuraciones de pines <<<<----------
-  MX_ADC1_Init(); 
-
-  Game_Init(&hGame);
-
-  while (1)
-  {
-    // LEER SENSORES 
-    HAL_ADC_Start(&hadc1);
-    if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-        uint32_t rawValue = HAL_ADC_GetValue(&hadc1);
-        
-        //  ACTUALIZAR LÓGICA
-        Game_Update(&hGame, rawValue);
+static void GenerateCode(Game_Handle_t *game) {
+    for(int i=0; i<3; i++) {
+        game->secretCode[i] = rand() % 10; // 0-9
     }
+}
 
-    // ACTUALIZAR ACTUADORES (leds)
- 
-    // Mostrar progreso en 3 LEDs nuestros
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, (hGame.currentDigitIndex > 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, (hGame.currentDigitIndex > 2) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+void Game_Init(Game_Handle_t *game) {
+    game->currentState = STATE_INIT;
+    game->currentDigitIndex = 0;
+    game->playerInput = 0;
+}
 
-    // Feedback de estado ya sea Ganar/Perder
-    if(hGame.currentState == STATE_WIN) {
-        // Parpadeo verde
-        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0); 
-        HAL_Delay(200); // Bloqueo temporal
-    } 
-    else if (hGame.currentState == STATE_LOSE) {
-        // Parpadeo Rojo rápido + Buzzeador
-        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-        HAL_Delay(50);
+void Game_Update(Game_Handle_t *game, uint32_t adcValue) { //maestro de juego
+    
+    game->playerInput = (adcValue * 10) / 4096; //convertidor potenciometro
+    if(game->playerInput > 9) game->playerInput = 9;
+
+    // maquina de estados
+    switch (game->currentState) {
+        case STATE_INIT:
+            GenerateCode(game);
+            game->currentState = STATE_IDLE;
+            break;
+
+        case STATE_IDLE:
+            game->currentState = STATE_PLAYING;
+            break;
+
+        case STATE_PLAYING:
+            // aqui el jugador esta girando el potenciomtro
+            // la logica seria en el main
+            break;
+
+        case STATE_CHECK_INPUT:
+            // pulso boton (sera el Game_HandleButton)
+            if (abs(game->playerInput - game->secretCode[game->currentDigitIndex]) <= TOLERANCE) {
+                // correcto
+                game->currentDigitIndex++;
+                if (game->currentDigitIndex >= 3) {
+                    game->currentState = STATE_WIN;
+                } else {
+                    game->currentState = STATE_PLAYING; // vas al siguiente numero
+                }
+            } else {
+                // fallo
+                game->currentState = STATE_LOSE;
+            }
+            break;
+
+        case STATE_WIN:
+            // espera reset
+            break;
+
+        case STATE_LOSE:
+            // espera reset
+            break;
     }
+}
 
-    HAL_Delay(10); //por si aca
-  }
+void Game_HandleButton(Game_Handle_t *game) {
+    if (game->currentState == STATE_WIN || game->currentState == STATE_LOSE) {
+        // Reiniciar 
+        Game_Init(game);
+    } else if (game->currentState == STATE_PLAYING) {
+      // jugar
+        game->currentState = STATE_CHECK_INPUT;
+    }
 }
