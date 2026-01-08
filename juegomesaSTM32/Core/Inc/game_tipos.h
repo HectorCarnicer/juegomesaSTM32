@@ -1,5 +1,5 @@
-#ifndef GAME_TYPES_H
-#define GAME_TYPES_H
+#ifndef GAME_TIPOS_H
+#define GAME_TIPOS_H
 
 #include <stdint.h>
 
