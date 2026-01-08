@@ -1,7 +1,7 @@
-#ifndef GAME_FSM_H
-#define GAME_FSM_H
+#ifndef GAME_FUNCIONAMIENTO_H
+#define GAME_FUNCIONAMIENTO_H
 
-#include "game_types.h"
+#include "game_tipos.h"
 #include "main.h" // hay que acceder al HAL por si acaso
 
 // Funciones publicas (game_handle es la estructura de game_tipos)
