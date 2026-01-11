@@ -62,7 +62,7 @@ static void MX_TIM1_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
-  if (htim == &htim1)
+  if (htim->Instance == TIM1)
   {
     hGame.GameState_t = STATE_LOSE;
   }
