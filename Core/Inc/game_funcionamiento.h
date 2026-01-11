@@ -7,6 +7,6 @@
 // Funciones publicas (game_handle es la estructura de game_tipos)
 void Game_Init(Game_Handle_t* game);
 void Game_Update(Game_Handle_t* game, uint32_t adcValue);
-void Game_HandleButton(Game_Handle_t* game); // llamada desde la interrupcion
+void Game_HandleButton(Game_Handle_t* game); // Llamada desde la interrupcion
 
 #endif
