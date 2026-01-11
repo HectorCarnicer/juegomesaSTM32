@@ -60,7 +60,13 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+  if (htim == &htim1)
+  {
+    hGame.GameState_t = STATE_LOSE;
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -96,6 +102,7 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   Game_Init(&hGame);
+  HAL_TIM_Base_Start_IT(&htim1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -117,12 +124,14 @@ int main(void)
         HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0); 
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
         HAL_Delay(200); 
+        HAL_TIM_Base_Start_IT(&htim1); // Reset temporizador
     } 
     else if (hGame.currentState == STATE_LOSE) {
         // alarma es rojo parpadeo
         HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
         HAL_Delay(50);
+        HAL_TIM_Base_Start_IT(&htim1); // Reset temporizador
     }
     HAL_Delay(10);
 
@@ -270,7 +279,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sSlaveConfig.SlaveMode = TIM_SLAVEMODE_DISABLE;
-  sSlaveConfig.InputTrigger = TIM_TS_ITR0;
+  sSlaveConfig.InputTrigger = TIM_TS_ITR1;
   if (HAL_TIM_SlaveConfigSynchro(&htim1, &sSlaveConfig) != HAL_OK)
   {
     Error_Handler();
