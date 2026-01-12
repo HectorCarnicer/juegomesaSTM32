@@ -42,7 +42,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
@@ -55,18 +54,12 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-{
-	if (htim->Instance == TIM1)
-	{
-		hGame.currentState = STATE_LOSE;
-	}
-}
+
 /* USER CODE END 0 */
 
 /**
@@ -103,6 +96,7 @@ int main(void)
 	/* USER CODE BEGIN 2 */
 	Game_Init(&hGame);
 	HAL_TIM_Base_Start_IT(&htim1);
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -369,6 +363,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			Game_HandleButton(&hGame);
 			last_interrupt_time = interrupt_time;
 		}
+	}
+}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+	if (htim->Instance == TIM1)
+	{
+		hGame.currentState = STATE_LOSE;
 	}
 }
 /* USER CODE END 4 */
