@@ -42,19 +42,24 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
+
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
 Game_Handle_t hGame;
+static uint32_t rawValue;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim);
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -91,6 +96,7 @@ int main(void)
 
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
+	MX_DMA_Init();
 	MX_ADC1_Init();
 	MX_TIM1_Init();
 	/* USER CODE BEGIN 2 */
@@ -103,12 +109,9 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		// @TODO: Eliminar los HAL_Delay()
+		HAL_ADC_Start_DMA(&hadc1, &rawValue, sizeof(rawValue));
+		HAL_ADC_Start_IT(&hadc1); // Leer sensores
 
-		HAL_ADC_Start(&hadc1); // Leer sensores
-		if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
-			uint32_t rawValue = HAL_ADC_GetValue(&hadc1); Game_Update(&hGame, rawValue);
-		}
 		// Leds del progreso
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, (hGame.currentDigitIndex > 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -295,6 +298,22 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+ * Enable DMA controller clock
+ */
+static void MX_DMA_Init(void)
+{
+
+	/* DMA controller clock enable */
+	__HAL_RCC_DMA2_CLK_ENABLE();
+
+	/* DMA interrupt init */
+	/* DMA2_Stream0_IRQn interrupt configuration */
+	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+}
+
+/**
  * @brief GPIO Initialization Function
  * @param None
  * @retval None
@@ -364,12 +383,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			last_interrupt_time = interrupt_time;
 		}
 	}
+
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
 	if (htim->Instance == TIM1)
 	{
 		hGame.currentState = STATE_LOSE;
+	}
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	if (hadc->Instance == ADC1){
+		rawValue = HAL_ADC_GetValue(&hadc1); Game_Update(&hGame, rawValue);
 	}
 }
 /* USER CODE END 4 */
