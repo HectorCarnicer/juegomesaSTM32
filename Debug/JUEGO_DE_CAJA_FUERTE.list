@@ -733,19 +733,17 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim1);
  8000752:	4831      	ldr	r0, [pc, #196]	@ (8000818 <main+0xe8>)
  8000754:	f002 fd00 	bl	8003158 <HAL_TIM_Base_Start_IT>
-
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
-	while (1)
-	{
-		HAL_ADC_Start_DMA(&hadc1, &rawValue, sizeof(rawValue));
+	HAL_ADC_Start_DMA(&hadc1, &rawValue, sizeof(rawValue));
  8000758:	2204      	movs	r2, #4
  800075a:	4930      	ldr	r1, [pc, #192]	@ (800081c <main+0xec>)
  800075c:	4830      	ldr	r0, [pc, #192]	@ (8000820 <main+0xf0>)
  800075e:	f000 fe2f 	bl	80013c0 <HAL_ADC_Start_DMA>
-		HAL_ADC_Start_IT(&hadc1); // Leer sensores
+	HAL_ADC_Start_IT(&hadc1); // Leer sensores
  8000762:	482f      	ldr	r0, [pc, #188]	@ (8000820 <main+0xf0>)
  8000764:	f000 fd6e 	bl	8001244 <HAL_ADC_Start_IT>
+	/* USER CODE BEGIN WHILE */
+	while (1)
+	{
 
 		// Leds del progreso
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -843,8 +841,8 @@ int main(void)
 		HAL_Delay(10);
  800080a:	200a      	movs	r0, #10
  800080c:	f000 fcb2 	bl	8001174 <HAL_Delay>
-		HAL_ADC_Start_DMA(&hadc1, &rawValue, sizeof(rawValue));
- 8000810:	e7a2      	b.n	8000758 <main+0x28>
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+ 8000810:	e7aa      	b.n	8000768 <main+0x38>
  8000812:	bf00      	nop
  8000814:	20000174 	.word	0x20000174
  8000818:	2000012c 	.word	0x2000012c
@@ -1461,7 +1459,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  8000bb2:	4603      	mov	r3, r0
  8000bb4:	80fb      	strh	r3, [r7, #6]
 	// verifica pin es boton
-	// eligo pin13 o el q sea q este configurado
+	// elijo pin13 o el q sea q este configurado
 	if (GPIO_Pin == GPIO_PIN_13)
  8000bb6:	88fb      	ldrh	r3, [r7, #6]
  8000bb8:	f5b3 5f00 	cmp.w	r3, #8192	@ 0x2000

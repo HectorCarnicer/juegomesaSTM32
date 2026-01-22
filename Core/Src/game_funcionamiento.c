@@ -29,7 +29,8 @@ void Game_Update(Game_Handle_t *game, uint32_t adcValue) { //maestro de juego
 		break;
 
 	case STATE_IDLE:
-		game->currentState = STATE_PLAYING;
+		//game->currentState = STATE_PLAYING;
+		// Presionar botón para iniciar
 		break;
 
 	case STATE_PLAYING:
@@ -70,5 +71,8 @@ void Game_HandleButton(Game_Handle_t *game) {
 	} else if (game->currentState == STATE_PLAYING) {
 		// Jugar
 		game->currentState = STATE_CHECK_INPUT;
+	} else if (game->currentState == STATE_IDLE) {
+		// Jugar
+		game->currentState = STATE_PLAYING;
 	}
 }
