@@ -102,15 +102,14 @@ int main(void)
 	/* USER CODE BEGIN 2 */
 	Game_Init(&hGame);
 	HAL_TIM_Base_Start_IT(&htim1);
-
+	HAL_ADC_Start_DMA(&hadc1, &rawValue, sizeof(rawValue));
+	HAL_ADC_Start_IT(&hadc1); // Leer sensores
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		HAL_ADC_Start_DMA(&hadc1, &rawValue, sizeof(rawValue));
-		HAL_ADC_Start_IT(&hadc1); // Leer sensores
 
 		// Leds del progreso
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -369,7 +368,7 @@ static void MX_GPIO_Init(void)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	// verifica pin es boton
-	// eligo pin13 o el q sea q este configurado
+	// elijo pin13 o el q sea q este configurado
 	if (GPIO_Pin == GPIO_PIN_13)
 	{
 		// antirrebote simple
