@@ -149,7 +149,6 @@ int main(void)
 
 			//Reseteo
 			Game_Init(&hGame);
-			HAL_TIM_Base_Start_IT(&htim1); // Reset temporizador
 		}
 		else if (hGame.currentState == STATE_LOSE) {
 			// Alarma es rojo parpadeo
@@ -159,7 +158,6 @@ int main(void)
 
 			// Reseteo
 			Game_Init(&hGame);
-			HAL_TIM_Base_Start_IT(&htim1); // Reset temporizador
 		}
 		HAL_Delay(10);
 
@@ -399,6 +397,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		{
 			// llamamos al juego y guardamos la variable de tiempo para meterle un max
 			Game_HandleButton(&hGame);
+			if (hGame.currentState == STATE_IDLE) HAL_TIM_Base_Start_IT(&htim1);
 			last_interrupt_time = interrupt_time;
 		}
 	}

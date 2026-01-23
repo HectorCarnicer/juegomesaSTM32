@@ -3,7 +3,7 @@
 ../Core/Src/main.c:224:13:MX_ADC1_Init	3
 ../Core/Src/main.c:276:13:MX_TIM1_Init	5
 ../Core/Src/main.c:329:13:MX_GPIO_Init	1
-../Core/Src/main.c:388:6:HAL_GPIO_EXTI_Callback	3
-../Core/Src/main.c:407:6:HAL_TIM_PeriodElapsedCallback	3
-../Core/Src/main.c:418:6:HAL_ADC_ConvCpltCallback	2
-../Core/Src/main.c:429:6:Error_Handler	1
+../Core/Src/main.c:388:6:HAL_GPIO_EXTI_Callback	4
+../Core/Src/main.c:408:6:HAL_TIM_PeriodElapsedCallback	3
+../Core/Src/main.c:419:6:HAL_ADC_ConvCpltCallback	2
+../Core/Src/main.c:430:6:Error_Handler	1
