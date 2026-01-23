@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "game_tipos.h"
 #include "game_funcionamiento.h"
+#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,10 +111,39 @@ int main(void)
 			uint32_t rawValue = HAL_ADC_GetValue(&hadc1); Game_Update(&hGame, rawValue);
 		}
 		// Leds del progreso
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, (hGame.currentDigitIndex > 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, (hGame.currentDigitIndex > 2) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		// Feedback de estado final
+		//uint16_t pinActual = 0;
+		//if (hGame.currentDigitIndex == 0) pinActual = GPIO_PIN_12;      // Nivel 1:Verde
+		//else if (hGame.currentDigitIndex == 1) pinActual = GPIO_PIN_13; // Nivel 2:Naranja
+		//else if (hGame.currentDigitIndex == 2) pinActual = GPIO_PIN_15; // Nivel 3:Azul
+
+
+
+
+		//Calculo de distancia a digitos secretos (caliente o frio, para detectar digito decimal)
+
+		int distancia = abs(hGame.playerInput - hGame.secretCode[hGame.currentDigitIndex]);
+		uint32_t velocidadParpadeo = 0; // Pista al jugador sera parpadeo del led
+
+		if (distancia == 0) velocidadParpadeo = 50;   // Muy caliente (Parpadeo rapido)
+		else if (distancia <= 2) velocidadParpadeo = 200; // Caliente (Rápido)
+		else if (distancia <= 4) velocidadParpadeo = 500; // Templado (Lento)
+		else velocidadParpadeo = 0; // Frio (Apagado)
+
+		//logica del parpadeo con GetTick
+		static uint32_t ultimoParpadeo = 0;
+		static uint8_t estadoLed = 0;
+
+		//logica parpadeo
+		if (velocidadParpadeo > 0 && (HAL_GetTick() - ultimoParpadeo > velocidadParpadeo)) {
+		    estadoLed = !estadoLed; // invierto
+		    ultimoParpadeo = HAL_GetTick();
+		}
+		if (velocidadParpadeo == 0) estadoLed = 0; // Si esta frío hay q apagarlo
+		//operador ternario para detectar encendido o parpadeo
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : ((hGame.currentDigitIndex == 0) ? estadoLed : GPIO_PIN_RESET));
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, (hGame.currentDigitIndex > 1) ? GPIO_PIN_SET : ((hGame.currentDigitIndex == 1) ? estadoLed : GPIO_PIN_RESET));
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, (hGame.currentDigitIndex > 2) ? GPIO_PIN_SET : ((hGame.currentDigitIndex == 2) ? estadoLed : GPIO_PIN_RESET));
+
 		if(hGame.currentState == STATE_WIN) {
 			// Victoria es color verde parpadeo
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
