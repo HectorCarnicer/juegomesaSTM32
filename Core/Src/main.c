@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "game_tipos.h"
 #include "game_funcionamiento.h"
+#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,7 +43,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-DMA_HandleTypeDef hdma_adc1;
 
 TIM_HandleTypeDef htim1;
 
@@ -54,7 +54,6 @@ static uint32_t rawValue;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
@@ -96,7 +95,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
@@ -110,6 +108,33 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
+
+		//Calculo de distancia a digitos secretos (caliente o frio, para detectar digito decimal)
+
+		int distancia = abs(hGame.playerInput - hGame.secretCode[hGame.currentDigitIndex]);
+		uint32_t velocidadParpadeo = 0; // Pista al jugador sera parpadeo del led
+
+		if (distancia == 0) velocidadParpadeo = 50;   // Muy caliente (Parpadeo rapido)
+		else if (distancia <= 2) velocidadParpadeo = 200; // Caliente (Rápido)
+		else if (distancia <= 4) velocidadParpadeo = 500; // Templado (Lento)
+		else velocidadParpadeo = 0; // Frio (Apagado)
+
+		//logica del parpadeo con GetTick
+		static uint32_t ultimoParpadeo = 0;
+		static uint8_t estadoLed = 0;
+
+		//logica parpadeo
+		if (velocidadParpadeo > 0 && (HAL_GetTick() - ultimoParpadeo > velocidadParpadeo)) {
+		    estadoLed = !estadoLed; // invierto
+		    ultimoParpadeo = HAL_GetTick();
+		}
+		if (velocidadParpadeo == 0) estadoLed = 0; // Si esta frío hay q apagarlo
+		//operador ternario para detectar encendido o parpadeo
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : ((hGame.currentDigitIndex == 0) ? estadoLed : GPIO_PIN_RESET));
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, (hGame.currentDigitIndex > 1) ? GPIO_PIN_SET : ((hGame.currentDigitIndex == 1) ? estadoLed : GPIO_PIN_RESET));
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, (hGame.currentDigitIndex > 2) ? GPIO_PIN_SET : ((hGame.currentDigitIndex == 2) ? estadoLed : GPIO_PIN_RESET));
+
+
 
 		// Leds del progreso
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, (hGame.currentDigitIndex > 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -297,22 +322,6 @@ static void MX_TIM1_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA2_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -328,12 +337,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PC13 */
   GPIO_InitStruct.Pin = GPIO_PIN_13;
@@ -354,6 +367,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PD12 PD13 PD14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
