@@ -2,7 +2,7 @@
 #include <stdlib.h> // Para el randomizer
 
 #define TOLERANCE 1
-#define MAX_VAL   9      
+#define MAX_VAL   9
 
 static void GenerateCode(Game_Handle_t *game) {
 	for(int i=0; i<3; i++) {
