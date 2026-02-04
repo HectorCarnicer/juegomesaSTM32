@@ -60,8 +60,8 @@ all: main-build
 main-build: JUEGO_DE_CAJA_FUERTE.elf secondary-outputs
 
 # Tool invocations
-JUEGO_DE_CAJA_FUERTE.elf JUEGO_DE_CAJA_FUERTE.map: $(OBJS) $(USER_OBJS) C:\Users\ahouc\Desktop\stm32juego\juegomesaSTM32\STM32F411VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "JUEGO_DE_CAJA_FUERTE.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\ahouc\Desktop\stm32juego\juegomesaSTM32\STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="JUEGO_DE_CAJA_FUERTE.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+JUEGO_DE_CAJA_FUERTE.elf JUEGO_DE_CAJA_FUERTE.map: $(OBJS) $(USER_OBJS) C:\Users\ahouc\Downloads\CAJAFUERTE_REPARADA\juegomesaSTM32-DMA\STM32F411VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "JUEGO_DE_CAJA_FUERTE.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\ahouc\Downloads\CAJAFUERTE_REPARADA\juegomesaSTM32-DMA\STM32F411VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="JUEGO_DE_CAJA_FUERTE.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
