@@ -139,6 +139,9 @@ int main(void)
 		// ==========================================================
 		if (hGame.currentState == STATE_IDLE) {
 
+			//0. Reset de LEDs Victoria/Derrota
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9|GPIO_PIN_10, GPIO_PIN_RESET);
+
 			// 1. Animacion Circular
 			static uint32_t tAnim = 0;
 			static uint8_t ledPos = 0;
@@ -232,8 +235,8 @@ int main(void)
 					if (diff <= 1) { // Acierto
 						hGame.currentDigitIndex++;
 
-					// Feedback Acierto
-						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_15, GPIO_PIN_RESET);
+						// Feedback Acierto
+						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14, GPIO_PIN_RESET);
 						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
 						HAL_Delay(300);
 						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
@@ -277,8 +280,8 @@ int main(void)
 			else if (hGame.currentDigitIndex == 1) HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, s);
 			else HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);
 
-			if (hGame.currentDigitIndex > 2) HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
-			else if (hGame.currentDigitIndex == 2) HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, s);
+			if (hGame.currentDigitIndex > 2) HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
+			else if (hGame.currentDigitIndex == 2) HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, s);
 			else HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
 		}
 
@@ -288,6 +291,8 @@ int main(void)
 		else if (hGame.currentState == STATE_WIN) {
 			HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15);
 			HAL_Delay(100);
+
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9, GPIO_PIN_SET);
 
 			if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
 				while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET);
@@ -299,9 +304,10 @@ int main(void)
 		// ESTADO 4: DERROTA
 		// ==========================================================
 		else if (hGame.currentState == STATE_LOSE) {
-			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_15, GPIO_PIN_RESET);
-			HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_15|GPIO_PIN_14, GPIO_PIN_RESET);
 			HAL_Delay(200);
+
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET);
 
 			if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) {
 				while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET);
@@ -482,10 +488,13 @@ static void MX_GPIO_Init(void)
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_12|GPIO_PIN_13
+			|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
-	/*Configure GPIO pins : PD12 PD13 PD14 PD15 */
-	GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+	/*Configure GPIO pins : PD9 PD10 PD12 PD13
+                           PD14 PD15 */
+	GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_12|GPIO_PIN_13
+			|GPIO_PIN_14|GPIO_PIN_15;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
